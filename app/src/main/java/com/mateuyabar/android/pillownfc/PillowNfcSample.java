@@ -35,9 +35,16 @@ public class PillowNfcSample extends ActionBarActivity {
 		nfcManager = new PillowNfcManager(this);
 		nfcManager.onActivityCreate();
 		//onNewIntent(getIntent());
+
+		writeHelper= new WriteTagHelper(this, nfcManager);
+		//nfcManager.setOnTagReadListener(writeHelper);
+		nfcManager.setOnTagWriteErrorListener(writeHelper);
+		nfcManager.setOnTagWriteListener(writeHelper);
+
 		nfcManager.setOnTagReadListener(new PillowNfcManager.TagReadListener() {
 			@Override
 			public void onTagRead(String tagRead) {
+
 				//Toast.makeText(PillowNfcSample.this, "tag read:"+tagRead, Toast.LENGTH_LONG).show();
 				tagRead2 = tagRead;
 				EditText tv1 = (EditText) findViewById(R.id.editText_id);
@@ -49,30 +56,27 @@ public class PillowNfcSample extends ActionBarActivity {
 				//Toast.makeText(PillowNfcSample.this, "tag read:"+tagRead, Toast.LENGTH_LONG).show();
 				tv1.setText(tagRead.substring(8, 24));
 				tv2.setText(tagRead.substring(24, 40));
-				if (tagRead.substring(40,56).equals("Laki-Laki"))
-				{
+				if (tagRead.substring(40, 56).contains("Laki-Laki")) {
 					JKL.setChecked(true);
-				}
-				else
-				{
+				} else {
 					JKP.setChecked(true);
 				}
 				//tv3.setText(tagRead.substring(40, 56));
 				tv3.setText(tagRead.substring(56, 72));
 				tv4.setText(tagRead.substring(72, 88));
-				cek=0;
-				if(tv1.getText().equals(""))
-				{
+
+				if (tv1.getText().equals("")) {
 					/*idrandom random = new idrandom();
 					tv1.setText(random.generateActivationCode(6));*/
 				}
+				if(cek!=0){
+				writeHelper.closeDialog();
+					cek = 0;}
 
 			}
 		});
 		
-		writeHelper= new WriteTagHelper(this, nfcManager);
-		nfcManager.setOnTagWriteErrorListener(writeHelper);
-		nfcManager.setOnTagWriteListener(writeHelper);
+
 		// If don't want to use the Write helper you can use the following code
 		/*nfcManager.setOnTagWriteListener(new PillowNfcManager.TagWriteListener() {
 			@Override
@@ -118,7 +122,7 @@ public class PillowNfcSample extends ActionBarActivity {
 				String saldo = String.format("%1$-"+ 100+ "s",editText_saldoawal.getText().toString());
 				String text = id+id2+nama+jk+alamat+saldo;
 
-				writeHelper.writeText(text,editText_saldo,0);
+				writeHelper.writeText(text,editText_saldo,1);
 //				// If don't want to use the Write helper you can use the following code
 				//nfcManager.writeText(text);
 				Toast.makeText(PillowNfcSample.this, "Data Sedang Diproses", Toast.LENGTH_LONG).show();
@@ -165,7 +169,7 @@ public class PillowNfcSample extends ActionBarActivity {
 					String text = bersih + String.format("%1$-"+ 16+ "s",String.valueOf(x));
 					//nfcManager.writeText(text);
 					writeHelper.writeText(text, editText_saldo,cek);
-					if(cek==1){Toast.makeText(PillowNfcSample.this, "Saldo Sedang Diproses", Toast.LENGTH_LONG).show();}
+					//if(cek==1){Toast.makeText(PillowNfcSample.this, "Saldo Sedang Diproses", Toast.LENGTH_LONG).show();}
 				}
 
 			}

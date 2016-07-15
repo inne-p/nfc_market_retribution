@@ -18,7 +18,7 @@ import com.mateuyabar.android.pillownfc.R;
 /**
  * Helper for writing tags. Creates a dialog while waiting for the tag, and displays error messages with a toast
  */
-public class WriteTagHelper implements PillowNfcManager.TagWriteErrorListener,PillowNfcManager.TagReadListener, PillowNfcManager.TagWriteListener{
+public class WriteTagHelper implements PillowNfcManager.TagWriteErrorListener, PillowNfcManager.TagWriteListener{
 	AlertDialog dialog;
 	PillowNfcManager nfcManager;
 	Context context;
@@ -50,7 +50,14 @@ public class WriteTagHelper implements PillowNfcManager.TagWriteErrorListener,Pi
 			dialog.show();
 		}
 	}
-	
+
+	public void closeDialog(){
+			System.out.println("I'm hereeee");
+			if(dialog!=null) {
+				dialog.dismiss();
+			}
+
+	}
 	public void setDialogViewId(int dialogViewId) {
 		this.dialogViewId = dialogViewId;
 	}
@@ -90,8 +97,5 @@ public class WriteTagHelper implements PillowNfcManager.TagWriteErrorListener,Pi
 	}
 
 
-	@Override
-	public void onTagRead(String tagRead) {
-		dialog.dismiss();
-	}
+
 }

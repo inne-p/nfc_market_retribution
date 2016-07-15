@@ -191,7 +191,10 @@ public class PillowNfcManager {
 		// Complete NDEF message with both records
 		NdefMessage message = new NdefMessage(new NdefRecord[] { relayRecord });
 
+		if(tag!=null)
+		{
 		Ndef ndef = Ndef.get(tag);
+
 		if (ndef != null) {
 			// If the tag is already formatted, just write the message to it
 			try {
@@ -246,6 +249,7 @@ public class PillowNfcManager {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
 	}
 
 	public interface TagReadListener {
