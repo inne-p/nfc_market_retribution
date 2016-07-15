@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Aplikasi Registrasi Retribusi Pasar</string>
+    <string name="title_activity_sample">Sample activity</string>
+
+    <string name="wait_write_dialog_title">Simpan Data</string>
+    <string name="wait_write_dialog_text">Simpan Kartu Anda</string>
+    <string name="tag_written_toast">Berhasil Disimpan</string>
+    <string name="cancel">Cancel</string>
+</resources>
