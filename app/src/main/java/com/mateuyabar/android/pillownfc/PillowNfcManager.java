@@ -195,7 +195,10 @@ public class PillowNfcManager {
 		if (ndef != null) {
 			// If the tag is already formatted, just write the message to it
 			try {
-				ndef.connect();
+				System.out.println(ndef.isConnected());
+				if(!ndef.isConnected()) {
+					ndef.connect();
+				}
 			} catch (IOException e) {
 				throw new NFCWriteException(NFCWriteException.NFCErrorType.unknownError);
 			}
@@ -238,7 +241,11 @@ public class PillowNfcManager {
 				throw new NFCWriteException(NFCErrorType.noNdefError);
 			}
 		}
-
+		try {
+			ndef.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public interface TagReadListener {
