@@ -26,12 +26,12 @@ public class WriteTagHelper implements PillowNfcManager.TagWriteErrorListener, P
 	int Cek=0;
 	EditText saldo;
 	int dialogViewId = R.layout.write_nfc_dialog_view;
-	
+
 	public WriteTagHelper(Context context, PillowNfcManager nfcManager) {
 		this.context = context;
 		this.nfcManager = nfcManager;
 	}
-	
+
 	/**
 	 * Write the given text to a tag.
 	 * @param text
@@ -51,6 +51,16 @@ public class WriteTagHelper implements PillowNfcManager.TagWriteErrorListener, P
 		}
 	}
 
+	public void writeTextIdent(String text, EditText saldo){
+		//nfcManager.readTagFromIntent(intent);
+		this.saldo = saldo;
+		dialog = createWaitingDialog();
+		dialog.show();
+		//Inne
+		nfcManager.writeTextIdent(text);
+
+	}
+
 	public void closeDialog(){
 			System.out.println("I'm hereeee");
 			if(dialog!=null) {
@@ -65,17 +75,22 @@ public class WriteTagHelper implements PillowNfcManager.TagWriteErrorListener, P
 	@Override
 	public void onTagWritten() {
 		//Inne 	dialog.dismiss();
+		if(dialog!=null) {
+			dialog.dismiss();
+		}
 		saldo.setText("");
 		Toast.makeText(context, R.string.tag_written_toast, Toast.LENGTH_LONG).show();;
 	}
 
 	@Override
 	public void onTagWriteError(NFCWriteException exception) {
-		//	dialog.dismiss();
+		if(dialog!=null) {
+			dialog.dismiss();
+		}
 		//TODO translate exeptions
 		Toast.makeText(context, exception.getType().toString(), Toast.LENGTH_LONG).show();
 	}
-	
+
 	/**
 	 * Creates a dialog while waiting for the tag
 	 * @return

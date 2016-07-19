@@ -22,8 +22,8 @@ import java.io.IOException;
 
 /**
  * NFC manager.
- * 
- * 
+ *
+ *
  */
 public class PillowNfcManager {
 	NfcAdapter nfcAdapter;
@@ -34,10 +34,11 @@ public class PillowNfcManager {
 	TagWriteListener onTagWriteListener;
 	TagWriteErrorListener onTagWriteErrorListener;
 
-	String writeText = null;
+	String writeText = null, writeTextIdent = null;
 
-	
+
 	public PillowNfcManager(Activity activity) {
+		System.out.println("I'm here");
 		this.activity = activity;
 	}
 
@@ -65,6 +66,9 @@ public class PillowNfcManager {
 	/**
 	 * Indicates that we want to write the given text to the next tag detected
 	 */
+	public void writeTextIdent(String writeText) {
+		this.writeTextIdent=writeText;
+	}
 	public void writeText(String writeText) {
 		this.writeText = writeText;
 		// I n n e
@@ -98,7 +102,7 @@ public class PillowNfcManager {
 		this.writeText = null;
 	}
 
-	
+
 	/**
 	 * To be executed on OnCreate of the activity
 	 * @return true if the device has nfc capabilities
@@ -136,19 +140,23 @@ public class PillowNfcManager {
 	 * @param intent
 	 */
 	public void onActivityNewIntent(Intent intent) {
-		// TODO Check if the following line has any use 
+		// TODO Check if the following line has any use
 		// activity.setIntent(intent);
-		if (writeText == null)
-			readTagFromIntent(intent);
+		System.out.println("Wit:"+writeTextIdent);
+		if (writeText == null && writeTextIdent==null){
+			System.out.println("I'm over here");
+			readTagFromIntent(intent);}
 		else {
+			System.out.println("I'm over there");
 			Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+			System.out.println("tag:" + tag);
 			try {
-				writeTag(activity, tag, writeText);
+				writeTag(activity, tag, writeTextIdent);
 				onTagWriteListener.onTagWritten();
 			} catch (NFCWriteException exception) {
 				onTagWriteErrorListener.onTagWriteError(exception);
 			} finally {
-				writeText = null;
+				writeText = null;writeTextIdent = null;
 			}
 		}
 	}
@@ -198,11 +206,12 @@ public class PillowNfcManager {
 		if (ndef != null) {
 			// If the tag is already formatted, just write the message to it
 			try {
-				System.out.println(ndef.isConnected());
+				System.out.println(ndef.isConnected()+tag.toString());
 				if(!ndef.isConnected()) {
 					ndef.connect();
 				}
 			} catch (IOException e) {
+				System.out.println(e.toString());
 				throw new NFCWriteException(NFCWriteException.NFCErrorType.unknownError);
 			}
 			// Make sure the tag is writable
@@ -226,6 +235,14 @@ public class PillowNfcManager {
 			} catch (FormatException fe) {
 				throw new NFCWriteException(NFCErrorType.formattingError, fe);
 			}
+
+			try {
+
+				ndef.close();
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		} else {
 			// If the tag is not formatted, format it with the message
 			NdefFormatable format = NdefFormatable.get(tag);
@@ -244,11 +261,7 @@ public class PillowNfcManager {
 				throw new NFCWriteException(NFCErrorType.noNdefError);
 			}
 		}
-		try {
-			ndef.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+
 	}
 	}
 

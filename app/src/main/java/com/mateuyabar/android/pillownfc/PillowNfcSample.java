@@ -75,7 +75,7 @@ public class PillowNfcSample extends ActionBarActivity {
 
 			}
 		});
-		
+
 
 		// If don't want to use the Write helper you can use the following code
 		/*nfcManager.setOnTagWriteListener(new PillowNfcManager.TagWriteListener() {
@@ -90,7 +90,7 @@ public class PillowNfcSample extends ActionBarActivity {
 				Toast.makeText(PillowNfcSample.this, exception.getType().toString(), Toast.LENGTH_LONG).show();
 			}
 		});*/
-		
+
 		Button writeButton = (Button) findViewById(R.id.write_button);
 		Button topup = (Button) findViewById(R.id.topup_button);
 		Button clear = (Button) findViewById(R.id.clear_button);
@@ -122,7 +122,7 @@ public class PillowNfcSample extends ActionBarActivity {
 				String saldo = String.format("%1$-"+ 100+ "s",editText_saldoawal.getText().toString());
 				String text = id+id2+nama+jk+alamat+saldo;
 
-				writeHelper.writeText(text,editText_saldo,1);
+				writeHelper.writeTextIdent(text, editText_saldo);
 //				// If don't want to use the Write helper you can use the following code
 				//nfcManager.writeText(text);
 				Toast.makeText(PillowNfcSample.this, "Data Sedang Diproses", Toast.LENGTH_LONG).show();
@@ -190,22 +190,22 @@ public class PillowNfcSample extends ActionBarActivity {
 		});
 		onNewIntent(getIntent()); //Inne
 	}
-	
+
 	@Override
 	protected void onResume() {
 		super.onResume();
 		nfcManager.onActivityResume();
 	}
-	
+
 	@Override
 	protected void onPause() {
 		nfcManager.onActivityPause();
 		super.onPause();
 	}
-	
+
 	@Override
 	public void onNewIntent(Intent intent){
 		nfcManager.onActivityNewIntent(intent);
 	}
-	
+
 }
