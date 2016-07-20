@@ -13,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import java.util.Random;
 
+import com.mateuyabar.android.pillownfc.util.SharedProperty;
 import com.mateuyabar.android.pillownfc.util.WriteTagHelper;
 
 import java.util.Date;
@@ -25,12 +26,15 @@ public class PillowNfcSample extends ActionBarActivity {
 	WriteTagHelper writeHelper;
 	String jk;
 	String tagRead2;
+	SharedProperty sp;
+
 	int cek=0;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_sample);
 
+		sp = new SharedProperty();
 		final Random myRandom = new Random(6);
 		nfcManager = new PillowNfcManager(this);
 		nfcManager.onActivityCreate();
@@ -41,38 +45,67 @@ public class PillowNfcSample extends ActionBarActivity {
 		nfcManager.setOnTagWriteErrorListener(writeHelper);
 		nfcManager.setOnTagWriteListener(writeHelper);
 
+		final Button writeButton = (Button) findViewById(R.id.write_button);
+		Button topup = (Button) findViewById(R.id.topup_button);
+		Button clear = (Button) findViewById(R.id.clear_button);
+		final EditText editText_id = (EditText) findViewById(R.id.editText_id) ;
+		final EditText editText_nama = (EditText) findViewById(R.id.editText_nama);
+		final RadioButton radioButton_L = (RadioButton) findViewById(R.id.radioButton_L);
+		final RadioButton radioButton_P = (RadioButton) findViewById(R.id.radioButton_P);
+		final EditText editText_alamat = (EditText) findViewById(R.id.editText_alamat);
+		final EditText editText_saldoawal = (EditText) findViewById(R.id.editText_saldoawal);
+		final EditText editText_saldo = (EditText) findViewById(R.id.editText_saldo);
+		final RadioGroup jeniskelamin = (RadioGroup) findViewById(R.id.radiogrup);
+
 		nfcManager.setOnTagReadListener(new PillowNfcManager.TagReadListener() {
 			@Override
 			public void onTagRead(String tagRead) {
 
 				//Toast.makeText(PillowNfcSample.this, "tag read:"+tagRead, Toast.LENGTH_LONG).show();
 				tagRead2 = tagRead;
-				EditText tv1 = (EditText) findViewById(R.id.editText_id);
-				EditText tv2 = (EditText) findViewById(R.id.editText_nama);
-				EditText tv3 = (EditText) findViewById(R.id.editText_alamat);
-				EditText tv4 = (EditText) findViewById(R.id.editText_saldoawal);
-				RadioButton JKL = (RadioButton) findViewById(R.id.radioButton_L);
-				RadioButton JKP = (RadioButton) findViewById(R.id.radioButton_P);
-				//Toast.makeText(PillowNfcSample.this, "tag read:"+tagRead, Toast.LENGTH_LONG).show();
-				tv1.setText(tagRead.substring(8, 24));
-				tv2.setText(tagRead.substring(24, 40));
-				if (tagRead.substring(40, 56).contains("Laki-Laki")) {
-					JKL.setChecked(true);
-				} else {
-					JKP.setChecked(true);
-				}
-				//tv3.setText(tagRead.substring(40, 56));
-				tv3.setText(tagRead.substring(56, 72));
-				tv4.setText(tagRead.substring(72, 88));
+				if(tagRead!="") {
 
-				if (tv1.getText().equals("")) {
+					EditText tv1 = (EditText) findViewById(R.id.editText_id);
+					EditText tv2 = (EditText) findViewById(R.id.editText_nama);
+					EditText tv3 = (EditText) findViewById(R.id.editText_alamat);
+					EditText tv4 = (EditText) findViewById(R.id.editText_saldoawal);
+					RadioButton JKL = (RadioButton) findViewById(R.id.radioButton_L);
+					RadioButton JKP = (RadioButton) findViewById(R.id.radioButton_P);
+					//Toast.makeText(PillowNfcSample.this, "tag read:"+tagRead, Toast.LENGTH_LONG).show();
+					tv1.setText(sp.getId());
+					//tv1.setText(tagRead.substring(8, 24));
+					tv2.setText(tagRead.substring(24, 40));
+					if (tagRead.substring(40, 56).contains("Laki-Laki")) {
+						JKL.setChecked(true);
+					} else {
+						JKP.setChecked(true);
+					}
+					//tv3.setText(tagRead.substring(40, 56));
+					tv3.setText(tagRead.substring(56, 72));
+					tv4.setText(tagRead.substring(72, 88));
+
+					if (tv1.getText().equals("")) {
 					/*idrandom random = new idrandom();
 					tv1.setText(random.generateActivationCode(6));*/
-				}
-				if(cek!=0){
-				writeHelper.closeDialog();
-					cek = 0;}
+					}
+					if (cek != 0) {
+						writeHelper.closeDialog();
+						cek = 0;
+					}
+				System.out.println("Tagread :"+tagRead);
 
+					writeButton.setVisibility(View.GONE);
+					Toast.makeText(PillowNfcSample.this, "Kartu Sudah Terisi", Toast.LENGTH_LONG).show();
+				}else{
+					editText_id.setText("");
+					editText_nama.setText("");
+					editText_alamat.setText("");
+					editText_saldo.setText("");
+					editText_saldoawal.setText("");
+					jeniskelamin.clearCheck();
+					writeButton.setVisibility(View.VISIBLE);
+					Toast.makeText(PillowNfcSample.this, "Kartu Kosong", Toast.LENGTH_LONG).show();
+				}
 			}
 		});
 
@@ -91,17 +124,7 @@ public class PillowNfcSample extends ActionBarActivity {
 			}
 		});*/
 
-		Button writeButton = (Button) findViewById(R.id.write_button);
-		Button topup = (Button) findViewById(R.id.topup_button);
-		Button clear = (Button) findViewById(R.id.clear_button);
-		final EditText editText_id = (EditText) findViewById(R.id.editText_id) ;
-		final EditText editText_nama = (EditText) findViewById(R.id.editText_nama);
-		final RadioButton radioButton_L = (RadioButton) findViewById(R.id.radioButton_L);
-		final RadioButton radioButton_P = (RadioButton) findViewById(R.id.radioButton_P);
-		final EditText editText_alamat = (EditText) findViewById(R.id.editText_alamat);
-		final EditText editText_saldoawal = (EditText) findViewById(R.id.editText_saldoawal);
-		final EditText editText_saldo = (EditText) findViewById(R.id.editText_saldo);
-		final RadioGroup jeniskelamin = (RadioGroup) findViewById(R.id.radiogrup);
+
 		writeButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -191,6 +214,14 @@ public class PillowNfcSample extends ActionBarActivity {
 		onNewIntent(getIntent()); //Inne
 	}
 
+	/*protected void clear(){
+		editText_id.setText("");
+		editText_nama.setText("");
+		editText_alamat.setText("");
+		editText_saldo.setText("");
+		editText_saldoawal.setText("");
+		jeniskelamin.clearCheck();
+	}*/
 	@Override
 	protected void onResume() {
 		super.onResume();
