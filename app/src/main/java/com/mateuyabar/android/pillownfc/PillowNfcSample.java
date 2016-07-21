@@ -28,7 +28,7 @@ public class PillowNfcSample extends ActionBarActivity {
 	String tagRead2;
 	SharedProperty sp;
 
-	int cek=0;
+	int cek=0, Clear=0;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -63,6 +63,7 @@ public class PillowNfcSample extends ActionBarActivity {
 
 				//Toast.makeText(PillowNfcSample.this, "tag read:"+tagRead, Toast.LENGTH_LONG).show();
 				tagRead2 = tagRead;
+
 				if(tagRead!="") {
 
 					EditText tv1 = (EditText) findViewById(R.id.editText_id);
@@ -73,16 +74,16 @@ public class PillowNfcSample extends ActionBarActivity {
 					RadioButton JKP = (RadioButton) findViewById(R.id.radioButton_P);
 					//Toast.makeText(PillowNfcSample.this, "tag read:"+tagRead, Toast.LENGTH_LONG).show();
 					tv1.setText(sp.getId());
-					//tv1.setText(tagRead.substring(8, 24));
-					tv2.setText(tagRead.substring(24, 40));
-					if (tagRead.substring(40, 56).contains("Laki-Laki")) {
+					tv2.setText(tagRead.substring(0, 16));
+					//tv2.setText(tagRead.substring(24, 40));
+					if (tagRead.substring(16, 32).contains("Laki-Laki")) {
 						JKL.setChecked(true);
 					} else {
 						JKP.setChecked(true);
 					}
 					//tv3.setText(tagRead.substring(40, 56));
-					tv3.setText(tagRead.substring(56, 72));
-					tv4.setText(tagRead.substring(72, 88));
+					tv3.setText(tagRead.substring(32, 48));
+					tv4.setText(tagRead.substring(48, 64));
 
 					if (tv1.getText().equals("")) {
 					/*idrandom random = new idrandom();
@@ -92,18 +93,18 @@ public class PillowNfcSample extends ActionBarActivity {
 						writeHelper.closeDialog();
 						cek = 0;
 					}
-				System.out.println("Tagread :"+tagRead);
+				System.out.println("Tagread :" + tagRead);
 
-					writeButton.setVisibility(View.GONE);
+					//writeButton.setVisibility(View.GONE);
 					Toast.makeText(PillowNfcSample.this, "Kartu Sudah Terisi", Toast.LENGTH_LONG).show();
 				}else{
-					editText_id.setText("");
+					editText_id.setText(sp.getId());
 					editText_nama.setText("");
 					editText_alamat.setText("");
 					editText_saldo.setText("");
 					editText_saldoawal.setText("");
 					jeniskelamin.clearCheck();
-					writeButton.setVisibility(View.VISIBLE);
+					//writeButton.setVisibility(View.VISIBLE);
 					Toast.makeText(PillowNfcSample.this, "Kartu Kosong", Toast.LENGTH_LONG).show();
 				}
 			}
@@ -128,27 +129,31 @@ public class PillowNfcSample extends ActionBarActivity {
 		writeButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				if(editText_id.getText().toString().length()>16 || editText_nama.getText().toString().length()>16 ||
+						editText_alamat.getText().toString().length()>16 || editText_saldoawal.getText().toString().length()>16 ){
+					Toast.makeText(PillowNfcSample.this, "Data Maksimal 16 Karakter", Toast.LENGTH_LONG).show();
+				}else{
+					String id = "        ";//String.format("%1$"+ 16+ "s",editText_id.getText().toString());
+					String id2 = String.format("%1$-"+ 16+ "s",editText_id.getText().toString());
+					String nama = String.format("%1$-"+ 16+ "s",editText_nama.getText().toString());
 
-				String id = "        ";//String.format("%1$"+ 16+ "s",editText_id.getText().toString());
-				String id2 = String.format("%1$-"+ 16+ "s",editText_id.getText().toString());
-				String nama = String.format("%1$-"+ 16+ "s",editText_nama.getText().toString());
+					if(radioButton_L.isChecked())
+					{
+						 jk = String.format("%1$-"+ 16+ "s","Laki-Laki");
+					}
+					else if(radioButton_P.isChecked())
+					{
+						 jk = String.format("%1$-"+ 16+ "s","Perempuan");
+					}
+					String alamat = String.format("%1$-"+ 16+ "s",editText_alamat.getText().toString());
+					String saldo = String.format("%1$-"+ 100+ "s",editText_saldoawal.getText().toString());
+					String text = nama+jk+alamat+saldo;
 
-				if(radioButton_L.isChecked())
-				{
-					 jk = String.format("%1$-"+ 16+ "s","Laki-Laki");
+					writeHelper.writeTextIdent(text, editText_saldo);
+	//				// If don't want to use the Write helper you can use the following code
+					//nfcManager.writeText(text);
+					Toast.makeText(PillowNfcSample.this, "Data Sedang Diproses", Toast.LENGTH_LONG).show();
 				}
-				else if(radioButton_P.isChecked())
-				{
-					 jk = String.format("%1$-"+ 16+ "s","Perempuan");
-				}
-				String alamat = String.format("%1$-"+ 16+ "s",editText_alamat.getText().toString());
-				String saldo = String.format("%1$-"+ 100+ "s",editText_saldoawal.getText().toString());
-				String text = id+id2+nama+jk+alamat+saldo;
-
-				writeHelper.writeTextIdent(text, editText_saldo);
-//				// If don't want to use the Write helper you can use the following code
-				//nfcManager.writeText(text);
-				Toast.makeText(PillowNfcSample.this, "Data Sedang Diproses", Toast.LENGTH_LONG).show();
 			}
 		});
 
@@ -201,14 +206,15 @@ public class PillowNfcSample extends ActionBarActivity {
 		clear.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				editText_id.setText("");
+				//Clear++;
+				writeHelper.formatNfc();
+				editText_id.setText(sp.getId());
 				editText_nama.setText("");
 				editText_alamat.setText("");
 				editText_saldo.setText("");
 				editText_saldoawal.setText("");
 				jeniskelamin.clearCheck();
-				idrandom random = new idrandom();
-				editText_id.setText(random.generateActivationCode(10));
+
 			}
 		});
 		onNewIntent(getIntent()); //Inne

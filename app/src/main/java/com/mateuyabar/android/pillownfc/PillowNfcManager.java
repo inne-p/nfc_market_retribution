@@ -1,8 +1,10 @@
 package com.mateuyabar.android.pillownfc;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.nfc.FormatException;
 import android.nfc.NdefMessage;
@@ -14,8 +16,14 @@ import android.nfc.tech.Ndef;
 import android.nfc.tech.NdefFormatable;
 import android.os.Parcelable;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.mateuyabar.android.pillownfc.NFCWriteException.NFCErrorType;
+import com.mateuyabar.android.pillownfc.util.SharedProperty;
+
 import java.io.IOException;
 
 //import com.google.common.base.Preconditions;
@@ -28,8 +36,10 @@ import java.io.IOException;
 public class PillowNfcManager {
 	NfcAdapter nfcAdapter;
 	Activity activity;
+	AlertDialog dialog;
 	PendingIntent pendingIntent;
-
+	SharedProperty sp;
+	int dialogViewId = R.layout.write_nfc_dialog_view;
 	TagReadListener onTagReadListener;
 	TagWriteListener onTagWriteListener;
 	TagWriteErrorListener onTagWriteErrorListener;
@@ -38,6 +48,7 @@ public class PillowNfcManager {
 
 
 	public PillowNfcManager(Activity activity) {
+		sp = new SharedProperty();
 		System.out.println("I'm here");
 		this.activity = activity;
 	}
@@ -99,7 +110,7 @@ public class PillowNfcManager {
 	 * Stops a writeText operation
 	 */
 	public void undoWriteText() {
-		this.writeText = null;
+		this.writeText = null;this.writeTextIdent = null;
 	}
 
 
@@ -109,9 +120,33 @@ public class PillowNfcManager {
 	 */
 	public boolean onActivityCreate() {
 		nfcAdapter = NfcAdapter.getDefaultAdapter(activity);
-		pendingIntent = PendingIntent.getActivity(activity, 0,
-				new Intent(activity, activity.getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
-		return nfcAdapter!=null;
+		if(nfcAdapter==null){
+			Toast.makeText(activity.getApplicationContext(), "Hp tidak mendukung NFC", Toast.LENGTH_LONG).show();
+			LayoutInflater inflater = LayoutInflater.from(activity);
+			View view = inflater.inflate(dialogViewId, null, false);
+			ImageView image = new ImageView(activity);
+			image.setImageResource(R.drawable.ic_nfc_black_48dp);
+			AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+			builder.setTitle("Perangkat Tidak Mendukung NFC")
+					.setView(view)
+					.setCancelable(false)
+					.setNegativeButton("Keluar", new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							System.exit(1);
+						}
+					});
+			dialog=builder.create();
+			dialog.show();
+			pendingIntent = PendingIntent.getActivity(activity, 0,
+					new Intent(activity, activity.getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
+			return nfcAdapter==null;
+
+		}else{
+			pendingIntent = PendingIntent.getActivity(activity, 0,
+					new Intent(activity, activity.getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
+			return nfcAdapter!=null;
+		}
+
 	}
 
 	/**
@@ -149,15 +184,22 @@ public class PillowNfcManager {
 		else {
 			System.out.println("I'm over there");
 			Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-			System.out.println("tag:" + tag);
-			try {
-				writeTag(activity, tag, writeTextIdent);
-				onTagWriteListener.onTagWritten();
-			} catch (NFCWriteException exception) {
-				onTagWriteErrorListener.onTagWriteError(exception);
-			} finally {
-				writeText = null;writeTextIdent = null;
-			}
+			System.out.println(sp.isIdEqual(byte2HexString(tag.getId())));
+			System.out.println(byte2HexString(tag.getId())==sp.getId());
+			System.out.println(byte2HexString(tag.getId()).contains(sp.getId()));
+			if(sp.isIdEqual(byte2HexString(tag.getId()))) {
+				System.out.println("tag:" + tag);
+				try {
+					writeTag(activity, tag, writeTextIdent);
+					onTagWriteListener.onTagWritten();
+				} catch (NFCWriteException exception) {
+					onTagWriteErrorListener.onTagWriteError(exception);
+				} finally {
+					writeText = null;
+					writeTextIdent = null;
+				}
+			}else
+				Toast.makeText(activity.getApplicationContext(), "Berbeda", Toast.LENGTH_LONG).show();
 		}
 	}
 
@@ -167,16 +209,43 @@ public class PillowNfcManager {
 	 */
 	public void readTagFromIntent(Intent intent) {
 		String action = intent.getAction();
+		System.out.println(action);
+		Tag myTag = (Tag) intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
 		if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(action)) {
-			Tag myTag = (Tag) intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+
+			//byte[] uid = intent.getByteArrayExtra(NfcAdapter.EXTRA_ID);
+//			String serialNumber = String.format("%02x", uid);
+			System.out.println(myTag.getId());
+			String id = "ID (";
+			id += byte2HexString(myTag.getId());
+			id += ")";
+			System.out.println(id);
+			sp.setId(byte2HexString(myTag.getId()));
 			Parcelable[] rawMsgs = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
+
 			if (rawMsgs != null) {
 				NdefRecord[] records = ((NdefMessage) rawMsgs[0]).getRecords();
 				String text = ndefRecordToString(records[0]);
+
 				System.out.println("Text "+text);
 				onTagReadListener.onTagRead(text);
 			}
 		}
+		else if(NfcAdapter.ACTION_TAG_DISCOVERED.equals(action)){
+			System.out.println("I'm hereee !");
+			sp.setId(byte2HexString(myTag.getId()));
+			onTagReadListener.onTagRead("");
+		}
+	}
+
+	private String byte2HexString(byte[] bytes) {
+		String ret = "";
+		if (bytes != null) {
+			for (Byte b : bytes) {
+				ret += String.format("%02X", b.intValue() & 0xFF);
+			}
+		}
+		return ret;
 	}
 
 	public String ndefRecordToString(NdefRecord record) {
@@ -192,9 +261,14 @@ public class PillowNfcManager {
 	 * @throws NFCWriteException
 	 */
 	protected void writeTag(Context context, Tag tag, String data) throws NFCWriteException {
+		Log.i("Log : writeTag", data);
 		// Record with actual data we care about
-		NdefRecord relayRecord = new NdefRecord(NdefRecord.TNF_WELL_KNOWN, NdefRecord.RTD_TEXT, null, data.getBytes());
-
+		NdefRecord relayRecord;
+		if(data!="delete"){
+			relayRecord = new NdefRecord(NdefRecord.TNF_WELL_KNOWN, NdefRecord.RTD_TEXT, null, data.getBytes());
+		}
+		else
+			relayRecord = new NdefRecord(NdefRecord.TNF_EMPTY, null, null, null);
 
 		// Complete NDEF message with both records
 		NdefMessage message = new NdefMessage(new NdefRecord[] { relayRecord });
@@ -247,6 +321,7 @@ public class PillowNfcManager {
 			// If the tag is not formatted, format it with the message
 			NdefFormatable format = NdefFormatable.get(tag);
 			if (format != null) {
+				System.out.println("Format"+format.toString());
 				try {
 					format.connect();
 					format.format(message);
@@ -265,6 +340,35 @@ public class PillowNfcManager {
 	}
 	}
 
+	public void formatNfc() throws NFCWriteException{
+		Tag myTag = (Tag) activity.getIntent().getParcelableExtra(NfcAdapter.EXTRA_TAG);
+		Ndef ndefTag = Ndef.get(myTag);
+		NdefRecord relayRecord = new NdefRecord(NdefRecord.TNF_EMPTY, null, null, null);
+
+
+		// Complete NDEF message with both records
+		NdefMessage message = new NdefMessage(new NdefRecord[] { relayRecord });
+		System.out.println("Tech list"+myTag.getTechList().toString());
+		// Complete NDEF message with both records
+
+		NdefFormatable format = NdefFormatable.get(myTag);
+		//System.out.println("Format"+format.equals(null));
+		if (format != null) {
+			try {
+				//ndefTag.writeNdefMessage(new NdefMessage(new NdefRecord(NdefRecord.TNF_EMPTY, null, null, null)));
+				format.connect();
+				format.format(message);
+			} catch (TagLostException tle) {
+				throw new NFCWriteException(NFCErrorType.tagLost, tle);
+			} catch (IOException ioe) {
+				throw new NFCWriteException(NFCErrorType.formattingError, ioe);
+			} catch (FormatException fe) {
+				throw new NFCWriteException(NFCErrorType.formattingError, fe);
+			}
+		} else {
+			throw new NFCWriteException(NFCErrorType.noNdefError);
+		}
+	}
 	public interface TagReadListener {
 		public void onTagRead(String tagRead);
 	}
@@ -276,4 +380,6 @@ public class PillowNfcManager {
 	public interface TagWriteErrorListener {
 		public void onTagWriteError(NFCWriteException exception);
 	}
+
+
 }
