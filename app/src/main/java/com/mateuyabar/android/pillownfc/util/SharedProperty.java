@@ -19,6 +19,8 @@ public class SharedProperty {
         return id;
     }
     public Boolean isIdEqual(String id){
-        return this.id==id;
+        Log.e("NEW ID", this.id+"="+id+String.valueOf(this.id.equals(id)));
+        Log.e("NEW ID", String.valueOf(this.id.equals(id)));
+        return this.id.equals(id);
     }
 }

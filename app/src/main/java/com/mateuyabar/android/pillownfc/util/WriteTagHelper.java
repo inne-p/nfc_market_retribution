@@ -51,6 +51,13 @@ public class WriteTagHelper implements PillowNfcManager.TagWriteErrorListener, P
 		}
 	}
 
+	public void formatNfc(){
+			System.out.println("Deleting");
+			dialog = createWaitingDialog();
+			dialog.show();
+			nfcManager.writeTextIdent("delete");
+	}
+
 	public void writeTextIdent(String text, EditText saldo){
 		//nfcManager.readTagFromIntent(intent);
 		this.saldo = saldo;
@@ -78,8 +85,7 @@ public class WriteTagHelper implements PillowNfcManager.TagWriteErrorListener, P
 		if(dialog!=null) {
 			dialog.dismiss();
 		}
-		saldo.setText("");
-		Toast.makeText(context, R.string.tag_written_toast, Toast.LENGTH_LONG).show();;
+		Toast.makeText(context, R.string.tag_written_toast, Toast.LENGTH_LONG).show();
 	}
 
 	@Override
